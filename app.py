@@ -36,17 +36,29 @@ class StockForecaster:
         self.sequence_length = 60
         
     def preprocess_data(self, df, price_column='Close'):
-        """Preprocess stock data for LSTM training"""
-        # Ensure date column is datetime
-        if 'Date' in df.columns:
-            df['Date'] = pd.to_datetime(df['Date'])
-            df = df.sort_values('Date').reset_index(drop=True)
-        
-        # Scale the price data
-        prices = df[price_column].values.reshape(-1, 1)
-        scaled_prices = self.scaler.fit_transform(prices)
-        
-        return scaled_prices, df
+    """Preprocess stock data for LSTM training"""
+    import pandas as pd
+
+    # Ensure date column is datetime
+    if 'Date' in df.columns:
+        try:
+            # First try: strict day-first parsing (DD-MM-YYYY like 13-06-2025)
+            df['Date'] = pd.to_datetime(df['Date'], format="%d-%m-%Y")
+        except Exception:
+            # Fallback: let pandas infer formats, but prefer dayfirst
+            df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors="coerce")
+
+        # Drop invalid dates if any (optional, or you can warn user)
+        df = df.dropna(subset=['Date'])
+
+        # Sort by date
+        df = df.sort_values('Date').reset_index(drop=True)
+
+    # Scale the price data
+    prices = df[price_column].values.reshape(-1, 1)
+    scaled_prices = self.scaler.fit_transform(prices)
+
+    return scaled_prices, df
     
     def create_sequences(self, data, sequence_length):
         """Create input sequences for LSTM"""
