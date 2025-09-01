@@ -144,11 +144,8 @@ def calculate_metrics(actual, predicted):
         'MAPE': mape
     }
 
-def main():
-    st.title("📈 Stock Price Forecasting Dashboard")
-    st.markdown("*Predict future stock prices using LSTM/GRU neural networks*")
-    
-    # Initialize session state
+def initialize_session_state():
+    """Initialize all session state variables"""
     if 'forecaster' not in st.session_state:
         st.session_state.forecaster = StockForecaster()
     if 'aug_data' not in st.session_state:
@@ -159,6 +156,14 @@ def main():
         st.session_state.model_trained = False
     if 'forecasts' not in st.session_state:
         st.session_state.forecasts = {}
+    if 'training_history' not in st.session_state:
+        st.session_state.training_history = None
+    if 'price_column' not in st.session_state:
+        st.session_state.price_column = None
+
+def main():
+    st.title("📈 Stock Price Forecasting Dashboard")
+    st.markdown("*Predict future stock prices using LSTM/GRU neural networks*")
     
     # Sidebar navigation
     st.sidebar.title("Navigation")
@@ -720,14 +725,20 @@ def sidebar_info():
     - `Open`, `High`, `Low`, `Volume`
     """)
     
-    if st.session_state.model_trained:
+    # Safe access to session state
+    model_trained = getattr(st.session_state, 'model_trained', False)
+    forecasts = getattr(st.session_state, 'forecasts', {})
+    
+    if model_trained:
         st.sidebar.success("✅ Model trained!")
     else:
         st.sidebar.info("⏳ Model not trained yet")
     
-    if st.session_state.forecasts:
-        st.sidebar.success(f"✅ {len(st.session_state.forecasts)} forecasts generated!")
+    if forecasts:
+        st.sidebar.success(f"✅ {len(forecasts)} forecasts generated!")
 
 if __name__ == "__main__":
+    # Initialize session state first
+    initialize_session_state()
     sidebar_info()
     main()
