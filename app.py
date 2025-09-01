@@ -51,9 +51,7 @@ class StockForecaster:
     # Scale the price date
     prices = df[price_column].values.reshape(-1, 1)
     scaled_prices = self.scaler.fit_transform(prices)
-    
-    return scaled_prices, df
-    
+        
     def create_sequences(self, data, sequence_length):
         """Create input sequences for LSTM"""
         X, y = [], []
